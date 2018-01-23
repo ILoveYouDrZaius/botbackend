@@ -2,11 +2,6 @@ from django.db import models
 from telegram.ext import Updater, CommandHandler
 import telegram, threading
 
-# Create your models here.
-
-def start(bot, update):
-    bot.send_message(chat_id=update.message.chat_id, text="I'm a bot, please talk to me!")
-
 # def worker(bot):
 #     i = 0
 #     while i<9999:
@@ -16,6 +11,12 @@ def start(bot, update):
 #         for u in updates:
 #             bot.send_message(chat_id=8852679, text='Hola')
 #         i += 1
+
+TYPE_TRIGGER_CHOICE = (
+    (0, 'Starts with'),
+    (1, 'Contains'),
+    (2, 'Ends with')
+)
 
 def hello(bot, update):
     update.message.reply_text(
@@ -29,9 +30,19 @@ class Telegrambot(models.Model):
     def __init__(self, token):
         self.token = token
         updater = Updater(self.token)
-        updater.dispatcher.add_handler(CommandHandler('hello', hello))
+        # for behaviour in behaviour_list:
+            # if behaviour.type == 1:
+            #     updater.dispatcher.add_handler(CommandHandler(behaviour.word,
+            #         lambda (bot, update): update.message.reply_text(
+            #             'Hello {}'.format(update.message.from_user.first_name))))
+            # elif behaviour.type == 2:
+            #     ...
+        updater.dispatcher.add_handler(CommandHandler('hello',
+            (lambda bot, update: (update.message.reply_text(
+                'Hello {}'.format(update.message.from_user.first_name))))))
+
         updater.start_polling()
-        updater.idle
+        # updater.idle
         # bot = telegram.Bot(token=self.token)
         # if bot.get_me().is_bot:
         #     self.name = bot.get_me().first_name
@@ -45,22 +56,14 @@ class Telegrambot(models.Model):
         # for u in updates:
         #     print(u)
             # bot.send_message(chat_id=8852679, text='Hola')
-        
 
-        
-
-
-
-        
-    
     def __str__(self):
         return self.name
 
-class Trigger(models.Model):
-    name = models.CharField(max_length=100)
-    trigger = models.CharField(max_length=50)
-    response = models.CharField(max_length=200)
-    telegrambot = models.ForeignKey(Telegrambot, on_delete=models.CASCADE)
+# class Trigger(models.Model):
+#     name = models.CharField(max_length=100)
+#     type = models.Field
+#     trigger = models.CharField(max_length=50)
     
-    def __str__(self):
-        return self.name
+#     def __str__(self):
+#         return self.name
