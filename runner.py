@@ -1,4 +1,4 @@
-import os
+import os, time
 import django
 os.environ["DJANGO_SETTINGS_MODULE"] = 'botbackend.settings'
 django.setup()
@@ -11,7 +11,10 @@ from telegrambot.models import *
 
 def main():
     bot = Telegrambot(token='483224181:AAEa3MOFXyTKbUXnGhyAX_ihlSr0SbUVP6M')
-    bot2 = Telegrambot(token='512586632:AAGnJzSgzNpL81ogn-91Q6TkMzyoHj9za_k')
+    # bot2 = Telegrambot(token='512586632:AAGnJzSgzNpL81ogn-91Q6TkMzyoHj9za_k')
+    bot.start()
+    # time.sleep(5)
+    # bot.stop()
     # func = f(2)
     # print(func(2))
 
