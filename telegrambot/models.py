@@ -13,15 +13,17 @@ class FilterContains(BaseFilter):
     def filter(self, message):
         return self.word in message.text
 
-TYPE_TRIGGER_CHOICE = (
+TRIGGER_TYPES = (
     (0, 'Starts with'),
     (1, 'Contains'),
-    (2, 'Ends with')
+    (2, 'Ends with'),
 )
 
 class Telegrambot(models.Model):
     name = models.CharField(max_length=30)
     token = models.CharField(max_length=50, primary_key=True)
+    active = models.BooleanField(default=False)
+    
     updater = None
 
     def __init__(self, *args, **kwargs):
@@ -44,17 +46,34 @@ class Telegrambot(models.Model):
             # elif behaviour.type == 2:
             #     ...
         # updater.dispatcher.add_handler(CommandHandler('hello', f_cond))
-        filtro = FilterContains()
-        filtro.set_word('hola')
-        
-        self.updater.dispatcher.add_handler(MessageHandler((Filters.text & filtro), lambda bot, update:(
-            update.message.reply_text(
-                'Eso es y será'
-            )
-        )))
 
-        self.updater.start_polling(clean=True)
+        # filtro = FilterContains()
+        # filtro.set_word('hola')
+        
+        # self.updater.dispatcher.add_handler(MessageHandler((Filters.text & filtro), lambda bot, update:(
+        #     update.message.reply_text(
+        #         'Eso es y será'
+        #     )
+        # )))
+
+        # self.updater.start_polling(clean=True)
         # self.updater.idle()
 
     def stop(self):
         self.updater.stop()
+
+
+class Trigger(models.Model):
+    word_trigger = models.CharField()
+    command = models.BooleanField()
+
+class Reply(models.Model):
+    reply = models.CharField()
+
+class Behaviour(models.Model):
+    trigger = models.OneToOneField(Telegrambot, on_delete=models.CASCADE)
+    reply = models.ManyToManyField(Reply)
+    bot = models.ForeignKey(Telegrambot, on_delete=models.CASCADE)
+
+    type_trigger = models.IntegerField(choices=TRIGGER_TYPES)
+    active = models.BooleanField(default=False)

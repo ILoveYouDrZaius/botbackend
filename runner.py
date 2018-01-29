@@ -13,6 +13,7 @@ def main():
     bot = Telegrambot(token='483224181:AAEa3MOFXyTKbUXnGhyAX_ihlSr0SbUVP6M')
     bot2 = Telegrambot(token='512586632:AAGnJzSgzNpL81ogn-91Q6TkMzyoHj9za_k')
     bot.save()
+    bot.start()
     # for t in Telegrambot.objects.all():
     #     print(t)
     # bot.start()
