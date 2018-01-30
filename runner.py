@@ -11,19 +11,23 @@ from telegrambot.models import *
 
 def main():
     bot = Telegrambot(token='483224181:AAEa3MOFXyTKbUXnGhyAX_ihlSr0SbUVP6M')
-    bot2 = Telegrambot(token='512586632:AAGnJzSgzNpL81ogn-91Q6TkMzyoHj9za_k')
     bot.save()
+    behaviour = Behaviour(type_trigger=1, active=True, bot=bot)
+    behaviour.save()
+    t = Trigger(word_trigger='ey', command=False, behaviour=behaviour)
+    t.save()
+    reply = Reply(reply='1', trigger=t)
+    reply.save()
+    behaviour2 = Behaviour(type_trigger=1, active=True, bot=bot)
+    behaviour2.save()
+    t2 = Trigger(word_trigger='ay', command=False, behaviour=behaviour2)
+    t2.save()
+    reply2 = Reply(reply='2', trigger=t2)
+    reply2.save()
+    # Behaviour.objects.filter(bot=bot).delete()
     bot.start()
-    # for t in Telegrambot.objects.all():
-    #     print(t)
-    # bot.start()
-    # bot2.start()
-    # print('Bots arrancados...')
-    # time.sleep(5)
-    # print('Parando...')
-    # bot.stop()
-    # func = f(2)
-    # print(func(2))
+    Telegrambot.objects.all().delete()
+
 
 
 if __name__ == '__main__':

@@ -38,42 +38,41 @@ class Telegrambot(models.Model):
 
     def start(self):
         self.updater = Updater(self.token)
-        # for behaviour in behaviour_list:
-            # if behaviour.type == 1:
-            #     updater.dispatcher.add_handler(CommandHandler(behaviour.word,
-            #         lambda (bot, update): update.message.reply_text(
-            #             'Hello {}'.format(update.message.from_user.first_name))))
-            # elif behaviour.type == 2:
-            #     ...
-        # updater.dispatcher.add_handler(CommandHandler('hello', f_cond))
-
-        # filtro = FilterContains()
-        # filtro.set_word('hola')
+        behaviour_list = Behaviour.objects.filter(bot=self)
         
-        # self.updater.dispatcher.add_handler(MessageHandler((Filters.text & filtro), lambda bot, update:(
-        #     update.message.reply_text(
-        #         'Eso es y será'
-        #     )
-        # )))
+        for behaviour in behaviour_list:
+            triggers = Trigger.objects.filter(behaviour=behaviour)
+            for trigger in triggers:
+                replies = Reply.objects.filter(trigger=trigger)
+                for reply in replies:
+                    if behaviour.type_trigger == 1:
+                        filtro = FilterContains()
+                        filtro.set_word(trigger.word_trigger)
+                        self.updater.dispatcher.add_handler(MessageHandler((Filters.text & filtro), (lambda reply=reply: (lambda bot, update:(
+                            update.message.reply_text(reply.reply))))(reply)
+                            ))
 
-        # self.updater.start_polling(clean=True)
-        # self.updater.idle()
+        self.updater.start_polling(clean=True)
+        self.updater.idle()
 
     def stop(self):
         self.updater.stop()
 
-
-class Trigger(models.Model):
-    word_trigger = models.CharField()
-    command = models.BooleanField()
-
-class Reply(models.Model):
-    reply = models.CharField()
-
 class Behaviour(models.Model):
-    trigger = models.OneToOneField(Telegrambot, on_delete=models.CASCADE)
-    reply = models.ManyToManyField(Reply)
-    bot = models.ForeignKey(Telegrambot, on_delete=models.CASCADE)
+    bot = models.ForeignKey(Telegrambot, on_delete=models.CASCADE, related_name='behaviour_bot')
 
     type_trigger = models.IntegerField(choices=TRIGGER_TYPES)
     active = models.BooleanField(default=False)
+    # class Meta:
+    #     unique_together = (("trigger", "bot"),)
+
+class Trigger(models.Model):
+    word_trigger = models.CharField(max_length=100)
+    command = models.BooleanField()
+    behaviour = models.ForeignKey(Behaviour, on_delete=models.CASCADE, related_name='trigger_behaviour')
+
+class Reply(models.Model):
+    reply = models.CharField(max_length=200)
+    trigger = models.ForeignKey(Trigger, on_delete=models.CASCADE, related_name='reply_trigger')
+
+    
