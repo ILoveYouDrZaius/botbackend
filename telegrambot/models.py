@@ -31,7 +31,6 @@ class Telegrambot(models.Model):
         super(Telegrambot, self).__init__(*args, **kwargs)
         if token is not None:
             self.token = token
-            print('Token {token} recibido'.format(token=token))
 
     def __str__(self):
         return self.token
@@ -48,15 +47,24 @@ class Telegrambot(models.Model):
                     if behaviour.type_trigger == 1:
                         filtro = FilterContains()
                         filtro.set_word(trigger.word_trigger)
-                        self.updater.dispatcher.add_handler(MessageHandler((Filters.text & filtro), (lambda reply=reply: (lambda bot, update:(
-                            update.message.reply_text(reply.reply))))(reply)
-                            ))
+                        self.updater.dispatcher.add_handler(MessageHandler((Filters.text & filtro), 
+                            (lambda reply=reply: (lambda bot, update:(
+                                update.message.reply_text(reply.reply))))(reply)
+                        ))
+        print('Bot arrancado...')
 
         self.updater.start_polling(clean=True)
-        self.updater.idle()
+        # self.updater.idle()
 
     def stop(self):
         self.updater.stop()
+
+    def removehandlers(self):
+        if not self.updater:
+            self.updater = Updater(self.token)
+        for handler in self.updater.dispatcher.handlers:
+            self.updater.dispatcher.remove_handler(handler)
+    
 
 class Behaviour(models.Model):
     bot = models.ForeignKey(Telegrambot, on_delete=models.CASCADE, related_name='behaviour_bot')

@@ -24,8 +24,18 @@ def main():
     t2.save()
     reply2 = Reply(reply='2', trigger=t2)
     reply2.save()
-    # Behaviour.objects.filter(bot=bot).delete()
     bot.start()
+    
+    time.sleep(5)
+    print('Parando...')
+    bot.stop()
+    time.sleep(2)
+    print('Arrancando...')
+    bot = Telegrambot(token='483224181:AAEa3MOFXyTKbUXnGhyAX_ihlSr0SbUVP6M')
+    bot.removehandlers()
+    bot.save()
+    bot.start()
+
     Telegrambot.objects.all().delete()
 
 
