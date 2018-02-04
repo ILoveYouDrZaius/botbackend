@@ -1,23 +1,30 @@
 from django.db import models
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, BaseFilter
-import telegram, threading, time
+import telegram
+import random, threading, time
 
+CONTAINS = 0
+STARTS_WITH = 1
+ENDS_WITH = 2
 
-class FilterContains(BaseFilter):
-    def __init__(self):
-        word = ''
+TRIGGERS_CHOICES = (
+    (CONTAINS, 'Contains'),
+    (STARTS_WITH, 'Starts with'),
+    (ENDS_WITH, 'Ends with'),
+)
 
-    def set_word(self, word):
+class CustomFilter(BaseFilter):
+    def __init__(self, word, filter_type):
         self.word = word
+        self.filter_type = filter_type
 
     def filter(self, message):
-        return self.word in message.text
-
-TRIGGER_TYPES = (
-    (0, 'Starts with'),
-    (1, 'Contains'),
-    (2, 'Ends with'),
-)
+        if self.filter_type == CONTAINS:
+            return self.word in message.text
+        elif self.filter_type == STARTS_WITH:
+            return message.text.startswith(self.word) 
+        elif self.filter_type == ENDS_WITH:
+            return message.text.endswith(self.word)
 
 class Telegrambot(models.Model):
     name = models.CharField(max_length=30)
@@ -41,16 +48,16 @@ class Telegrambot(models.Model):
         
         for behaviour in behaviour_list:
             triggers = Trigger.objects.filter(behaviour=behaviour)
+            replies = Reply.objects.filter(behaviour=behaviour)
+            # reply = return_random_reply(replies)
             for trigger in triggers:
-                replies = Reply.objects.filter(trigger=trigger)
-                for reply in replies:
-                    if behaviour.type_trigger == 1:
-                        filtro = FilterContains()
-                        filtro.set_word(trigger.word_trigger)
-                        self.updater.dispatcher.add_handler(MessageHandler((Filters.text & filtro), 
-                            (lambda reply=reply: (lambda bot, update:(
-                                update.message.reply_text(reply.reply))))(reply)
-                        ))
+                # TODO: no obtener así el trigger
+                filtro = CustomFilter(trigger.word_trigger, behaviour.type_trigger)
+
+            self.updater.dispatcher.add_handler(MessageHandler((Filters.text & filtro),
+                            (lambda replies: (lambda bot, update:(
+                                update.message.reply_text((((lambda replies:(random.choice(replies).reply))(replies)))))))(replies)
+            ))
         print('Bot arrancado...')
 
         self.updater.start_polling(clean=True)
@@ -69,10 +76,9 @@ class Telegrambot(models.Model):
 class Behaviour(models.Model):
     bot = models.ForeignKey(Telegrambot, on_delete=models.CASCADE, related_name='behaviour_bot')
 
-    type_trigger = models.IntegerField(choices=TRIGGER_TYPES)
+    type_trigger = models.IntegerField(choices=TRIGGERS_CHOICES)
     active = models.BooleanField(default=False)
-    # class Meta:
-    #     unique_together = (("trigger", "bot"),)
+
 
 class Trigger(models.Model):
     word_trigger = models.CharField(max_length=100)
@@ -81,6 +87,6 @@ class Trigger(models.Model):
 
 class Reply(models.Model):
     reply = models.CharField(max_length=200)
-    trigger = models.ForeignKey(Trigger, on_delete=models.CASCADE, related_name='reply_trigger')
+    behaviour = models.ForeignKey(Behaviour, on_delete=models.CASCADE, related_name='reply_behaviour')
 
     

@@ -10,33 +10,44 @@ from telegrambot.models import *
 
 
 def main():
+    Telegrambot.objects.all().delete()
+    Trigger.objects.all().delete()
+    Reply.objects.all().delete()
+    Behaviour.objects.all().delete()
+
     bot = Telegrambot(token='483224181:AAEa3MOFXyTKbUXnGhyAX_ihlSr0SbUVP6M')
     bot.save()
-    behaviour = Behaviour(type_trigger=1, active=True, bot=bot)
+    behaviour = Behaviour(type_trigger=0, active=True, bot=bot)
     behaviour.save()
+
     t = Trigger(word_trigger='ey', command=False, behaviour=behaviour)
     t.save()
-    reply = Reply(reply='1', trigger=t)
+    reply = Reply(reply='1', behaviour=behaviour)
     reply.save()
+
+    reply2 = Reply(reply='OJOOOO', behaviour=behaviour)
+    reply2.save()
+
     behaviour2 = Behaviour(type_trigger=1, active=True, bot=bot)
     behaviour2.save()
-    t2 = Trigger(word_trigger='ay', command=False, behaviour=behaviour2)
-    t2.save()
-    reply2 = Reply(reply='2', trigger=t2)
-    reply2.save()
-    bot.start()
-    
-    time.sleep(5)
-    print('Parando...')
-    bot.stop()
-    time.sleep(2)
-    print('Arrancando...')
-    bot = Telegrambot(token='483224181:AAEa3MOFXyTKbUXnGhyAX_ihlSr0SbUVP6M')
-    bot.removehandlers()
-    bot.save()
-    bot.start()
 
-    Telegrambot.objects.all().delete()
+    t4 = Trigger(word_trigger='ay', command=False, behaviour=behaviour2)
+    t4.save()
+    reply4 = Reply(reply='124', behaviour=behaviour2)
+    reply4.save()
+    
+    bot.start()
+    # time.sleep(5)
+    # print('Parando...')
+    # bot.stop()
+    # time.sleep(2)
+    # print('Arrancando...')
+    # bot = Telegrambot(token='483224181:AAEa3MOFXyTKbUXnGhyAX_ihlSr0SbUVP6M')
+    # bot.removehandlers()
+    # bot.save()
+    # bot.start()
+
+    # Telegrambot.objects.all().delete()
 
 
 
