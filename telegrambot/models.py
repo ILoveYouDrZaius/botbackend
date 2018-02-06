@@ -61,15 +61,21 @@ class Telegrambot(models.Model):
         for behaviour in behaviour_list:
             triggers = Trigger.objects.filter(behaviour=behaviour)
             replies = Reply.objects.filter(behaviour=behaviour)
-            all_filters = Filters.text
+            all_filters = None
             for trigger in triggers:
+                print(trigger.word_trigger)
                 if behaviour.type_behaviour == AND:
-                    all_filters = all_filters.__and__(CustomFilter(trigger.word_trigger, trigger.type_trigger))
+                    if not all_filters:
+                        all_filters = CustomFilter(trigger.word_trigger, trigger.type_trigger)
+                    else:
+                        all_filters = all_filters.__and__(CustomFilter(trigger.word_trigger, trigger.type_trigger))
                 elif behaviour.type_behaviour == OR:
-                    all_filters = all_filters.__or__(CustomFilter(trigger.word_trigger, trigger.type_trigger))
-            # print(all_filters)
-
-            self.updater.dispatcher.add_handler(MessageHandler(filters=(all_filters),
+                    if not all_filters:
+                        all_filters = CustomFilter(trigger.word_trigger, trigger.type_trigger)
+                    else:
+                        all_filters = all_filters.__or__(CustomFilter(trigger.word_trigger, trigger.type_trigger))
+            print(all_filters)
+            self.updater.dispatcher.add_handler(MessageHandler(filters=all_filters,
                         callback = (lambda replies: (lambda bot, update:(
                             update.message.reply_text((((lambda replies:(random.choice(replies).reply))(replies)))))))(replies)
             ))
@@ -89,6 +95,7 @@ class Telegrambot(models.Model):
         for handler in self.updater.dispatcher.handlers:
             self.updater.dispatcher.remove_handler(handler)
     
+   
 
 class Behaviour(models.Model):
     bot = models.ForeignKey(Telegrambot, on_delete=models.CASCADE, related_name='behaviour_bot')
