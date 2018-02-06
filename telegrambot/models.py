@@ -1,4 +1,7 @@
 from django.db import models
+from django.contrib.auth.models import User
+from operator import and_
+from functools import reduce
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, BaseFilter
 import telegram
 import random, threading, time
@@ -11,6 +14,14 @@ TRIGGERS_CHOICES = (
     (CONTAINS, 'Contains'),
     (STARTS_WITH, 'Starts with'),
     (ENDS_WITH, 'Ends with'),
+)
+
+OR = 0
+AND = 1
+
+BEHAVIOUR_TYPES_CHOICES = (
+    (AND, 'And'),
+    (OR, 'Or'),
 )
 
 class CustomFilter(BaseFilter):
@@ -27,6 +38,7 @@ class CustomFilter(BaseFilter):
             return message.text.endswith(self.word)
 
 class Telegrambot(models.Model):
+    # user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='behaviour_bot')
     name = models.CharField(max_length=30)
     token = models.CharField(max_length=50, primary_key=True)
     active = models.BooleanField(default=False)
@@ -49,14 +61,17 @@ class Telegrambot(models.Model):
         for behaviour in behaviour_list:
             triggers = Trigger.objects.filter(behaviour=behaviour)
             replies = Reply.objects.filter(behaviour=behaviour)
-            # reply = return_random_reply(replies)
+            all_filters = Filters.text
             for trigger in triggers:
-                # TODO: no obtener así el trigger
-                filtro = CustomFilter(trigger.word_trigger, behaviour.type_trigger)
+                if behaviour.type_behaviour == AND:
+                    all_filters = all_filters.__and__(CustomFilter(trigger.word_trigger, trigger.type_trigger))
+                elif behaviour.type_behaviour == OR:
+                    all_filters = all_filters.__or__(CustomFilter(trigger.word_trigger, trigger.type_trigger))
+            # print(all_filters)
 
-            self.updater.dispatcher.add_handler(MessageHandler((Filters.text & filtro),
-                            (lambda replies: (lambda bot, update:(
-                                update.message.reply_text((((lambda replies:(random.choice(replies).reply))(replies)))))))(replies)
+            self.updater.dispatcher.add_handler(MessageHandler(filters=(all_filters),
+                        callback = (lambda replies: (lambda bot, update:(
+                            update.message.reply_text((((lambda replies:(random.choice(replies).reply))(replies)))))))(replies)
             ))
         print('Bot arrancado...')
 
@@ -64,9 +79,11 @@ class Telegrambot(models.Model):
         # self.updater.idle()
 
     def stop(self):
+
         self.updater.stop()
 
     def removehandlers(self):
+
         if not self.updater:
             self.updater = Updater(self.token)
         for handler in self.updater.dispatcher.handlers:
@@ -76,13 +93,13 @@ class Telegrambot(models.Model):
 class Behaviour(models.Model):
     bot = models.ForeignKey(Telegrambot, on_delete=models.CASCADE, related_name='behaviour_bot')
 
-    type_trigger = models.IntegerField(choices=TRIGGERS_CHOICES)
     active = models.BooleanField(default=False)
-
+    type_behaviour = models.IntegerField(choices=BEHAVIOUR_TYPES_CHOICES)
 
 class Trigger(models.Model):
     word_trigger = models.CharField(max_length=100)
     command = models.BooleanField()
+    type_trigger = models.IntegerField(choices=TRIGGERS_CHOICES)
     behaviour = models.ForeignKey(Behaviour, on_delete=models.CASCADE, related_name='trigger_behaviour')
 
 class Reply(models.Model):
