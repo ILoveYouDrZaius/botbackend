@@ -15,7 +15,26 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.conf.urls import url, include
+from rest_framework import routers, serializers, viewsets
+from telegrambot.models import Trigger
+
+# Serializers define the API representation.
+class TriggerSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Trigger
+        fields = ('word_trigger','command','type_trigger')
+
+# ViewSets define the view behavior.
+class TriggerViewSet(viewsets.ModelViewSet):
+    queryset = Trigger.objects.all()
+    serializer_class = TriggerSerializer
+
+router = routers.DefaultRouter()
+router.register(r'triggers', TriggerViewSet)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
+    url(r'^', include(router.urls)),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
