@@ -31,7 +31,13 @@ class TelegramBotTest(TestCase):
         bot = Telegrambot(token='xxxxxxx', user=self.user)
         with self.assertRaises(InvalidToken):
             bot.start()
-        self.assertEqual(bot.is_connected(), False)        
+        self.assertEqual(bot.is_connected(), False)
+    
+    def test_stop_bot(self):
 
-        
-
+        bot = Telegrambot(token='483224181:AAEa3MOFXyTKbUXnGhyAX_ihlSr0SbUVP6M', user=self.user)
+        bot.start()
+        self.assertIsInstance(bot, Telegrambot)
+        self.assertEqual(bot.is_connected(), True)
+        bot.stop()
+        self.assertEqual(bot.is_connected(), False)

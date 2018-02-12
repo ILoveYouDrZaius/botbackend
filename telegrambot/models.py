@@ -87,6 +87,7 @@ class Telegrambot(models.Model):
     def stop(self):
 
         self.updater.stop()
+        self.updater = None
 
     def is_connected(self):
 
