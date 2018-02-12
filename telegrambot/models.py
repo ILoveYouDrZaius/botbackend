@@ -38,7 +38,8 @@ class CustomFilter(BaseFilter):
             return message.text.endswith(self.word)
 
 class Telegrambot(models.Model):
-    # user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='behaviour_bot')
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='behaviour_bot')
     name = models.CharField(max_length=30)
     token = models.CharField(max_length=50, primary_key=True)
     active = models.BooleanField(default=False)
@@ -46,6 +47,7 @@ class Telegrambot(models.Model):
     updater = None
 
     def __init__(self, *args, **kwargs):
+
         token = kwargs.pop('token', None)
         super(Telegrambot, self).__init__(*args, **kwargs)
         if token is not None:
@@ -55,6 +57,7 @@ class Telegrambot(models.Model):
         return self.token
 
     def start(self):
+
         self.updater = Updater(self.token)
         behaviour_list = Behaviour.objects.filter(bot=self)
         
@@ -74,43 +77,38 @@ class Telegrambot(models.Model):
                         all_filters = CustomFilter(trigger.word_trigger, trigger.type_trigger)
                     else:
                         all_filters = all_filters.__or__(CustomFilter(trigger.word_trigger, trigger.type_trigger))
-            print(all_filters)
             self.updater.dispatcher.add_handler(MessageHandler(filters=all_filters,
                         callback = (lambda replies: (lambda bot, update:(
                             update.message.reply_text((((lambda replies:(random.choice(replies).reply))(replies)))))))(replies)
             ))
-        print('Bot arrancado...')
 
         self.updater.start_polling(clean=True)
-        # self.updater.idle()
 
     def stop(self):
 
         self.updater.stop()
 
-    def removehandlers(self):
+    def is_connected(self):
 
-        if not self.updater:
-            self.updater = Updater(self.token)
-        for handler in self.updater.dispatcher.handlers:
-            self.updater.dispatcher.remove_handler(handler)
-    
-   
+        return self.updater is not None
+
 
 class Behaviour(models.Model):
+
     bot = models.ForeignKey(Telegrambot, on_delete=models.CASCADE, related_name='behaviour_bot')
 
     active = models.BooleanField(default=False)
     type_behaviour = models.IntegerField(choices=BEHAVIOUR_TYPES_CHOICES)
 
 class Trigger(models.Model):
-    word_trigger = models.CharField(max_length=100)
-    command = models.BooleanField()
-    type_trigger = models.IntegerField(choices=TRIGGERS_CHOICES)
+
     behaviour = models.ForeignKey(Behaviour, on_delete=models.CASCADE, related_name='trigger_behaviour')
+    word_trigger = models.CharField(max_length=100)
+    type_trigger = models.IntegerField(choices=TRIGGERS_CHOICES)
 
 class Reply(models.Model):
-    reply = models.CharField(max_length=200)
+
     behaviour = models.ForeignKey(Behaviour, on_delete=models.CASCADE, related_name='reply_behaviour')
+    reply = models.CharField(max_length=200)
 
     
