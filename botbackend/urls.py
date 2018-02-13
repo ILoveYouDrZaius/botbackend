@@ -17,13 +17,14 @@ from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url, include
 from rest_framework import routers
-from telegrambot.views import TriggerViewSet
+from telegrambot import views
+# from telegrambot.views import TriggerViewSet
 
-router = routers.DefaultRouter()
-router.register(r'triggers', TriggerViewSet)
+# router = routers.DefaultRouter()
+# router.register(r'triggers', TriggerViewSet)
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
-    url(r'^', include(router.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^', include('telegrambot.urls')),
+    url(r'^api-auth/', include('rest_framework.urls')),
 ]

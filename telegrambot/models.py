@@ -49,9 +49,9 @@ class Telegrambot(models.Model):
     def __init__(self, *args, **kwargs):
 
         token = kwargs.pop('token', None)
-        super(Telegrambot, self).__init__(*args, **kwargs)
         if token is not None:
             self.token = token
+        super(Telegrambot, self).__init__(*args, **kwargs)
 
     def __str__(self):
         return self.token
@@ -100,6 +100,9 @@ class Behaviour(models.Model):
 
     active = models.BooleanField(default=False)
     type_behaviour = models.IntegerField(choices=BEHAVIOUR_TYPES_CHOICES)
+
+    def __str__(self):
+        return 'behaviour {id}'.format(id=self.id)
 
 class Trigger(models.Model):
 
