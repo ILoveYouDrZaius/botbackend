@@ -18,7 +18,7 @@ class UserDetail(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-class BotList(generics.ListAPIView):
+class BotList(generics.ListCreateAPIView):
     queryset = Telegrambot.objects.all()
     serializer_class = TelegrambotSerializer
     # permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly)
@@ -32,7 +32,6 @@ class BotDetails(generics.RetrieveAPIView):
     queryset = Telegrambot.objects.all()
     serializer_class = TelegrambotSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-
 
 @csrf_exempt
 def trigger_list(request):

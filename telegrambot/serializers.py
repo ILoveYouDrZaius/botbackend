@@ -28,9 +28,9 @@ class TriggerSerializer(serializers.Serializer):
 class TelegrambotSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     user = serializers.ReadOnlyField(source='user.username')
-    name = serializers.CharField(max_length=30)
+    name = serializers.CharField(max_length=30, required=False)
     token = serializers.CharField(max_length=50)
-    active = serializers.BooleanField()
+    active = serializers.BooleanField(required=False)
     
     def create(self, validated_data):
         """
