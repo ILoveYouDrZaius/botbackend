@@ -16,11 +16,12 @@ def main():
     Reply.objects.all().delete()
     Behaviour.objects.all().delete()
 
-    user = User(username='Manolo', password='123456')
+    user = User.objects.create_user(username='Manolo', password='123456')
     user.save()
 
     bot = Telegrambot(token='483224181:AAEa3MOFXyTKbUXnGhyAX_ihlSr0SbUVP6M', user=user)
     bot.save()
+    # print('Token: {t}'.format(t=bot.token))
     behaviour = Behaviour(type_behaviour=0, active=True, bot=bot)
     behaviour.save()
 

@@ -39,7 +39,7 @@ class CustomFilter(BaseFilter):
 
 class Telegrambot(models.Model):
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='behaviour_bot')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bots')
     name = models.CharField(max_length=30)
     token = models.CharField(max_length=50, primary_key=True)
     active = models.BooleanField(default=False)
@@ -48,9 +48,10 @@ class Telegrambot(models.Model):
 
     def __init__(self, *args, **kwargs):
 
-        token = kwargs.pop('token', None)
-        if token is not None:
-            self.token = token
+        # token = kwargs.pop('token', None)
+        # print('Token {t}'.format(t=token))
+        # if token is not None:
+        #     self.token = token
         super(Telegrambot, self).__init__(*args, **kwargs)
 
     def __str__(self):

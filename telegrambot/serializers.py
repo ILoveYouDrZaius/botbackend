@@ -49,8 +49,10 @@ class TelegrambotSerializer(serializers.Serializer):
         return instance
 
 class UserSerializer(serializers.ModelSerializer):
+    # bots = serializers.PrimaryKeyRelatedField(many=True, queryset=Telegrambot.objects.all())
     bots = serializers.PrimaryKeyRelatedField(many=True, queryset=Telegrambot.objects.all())
-
+    
     class Meta:
         model = User
         fields = ('id', 'username', 'bots')
+        # fields = ('id', 'username')

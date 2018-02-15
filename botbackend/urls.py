@@ -13,9 +13,9 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url, include
+from django.contrib import admin
 from rest_framework import routers
 from telegrambot import views
 # from telegrambot.views import TriggerViewSet
@@ -24,7 +24,9 @@ from telegrambot import views
 # router.register(r'triggers', TriggerViewSet)
 
 urlpatterns = [
-    # path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls),
     url(r'^', include('telegrambot.urls')),
     url(r'^api-auth/', include('rest_framework.urls')),
+    url(r'^auth/', include('rest_framework_social_oauth2.urls')),
+    # url(r'^admin/', include(admin.site.urls)),
 ]
