@@ -13,7 +13,6 @@ class UserList(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-
 class UserDetail(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -27,8 +26,7 @@ class BotList(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-
-class BotDetails(generics.RetrieveAPIView):
+class BotDetails(generics.RetrieveUpdateDestroyAPIView):
     queryset = Telegrambot.objects.all()
     serializer_class = TelegrambotSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
