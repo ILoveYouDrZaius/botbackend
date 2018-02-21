@@ -1,13 +1,17 @@
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework import generics, permissions
-from rest_framework.renderers import JSONRenderer
+from rest_framework import generics, permissions, status
+from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
+from rest_framework.renderers import JSONRenderer
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from telegrambot.models import Trigger, Telegrambot
 from telegrambot.serializers import TriggerSerializer
 from django.contrib.auth.models import User
 from telegrambot.serializers import UserSerializer, TelegrambotSerializer
 from telegrambot.permissions import IsOwnerOrReadOnly
+from telegram.error import InvalidToken
 
 class UserList(generics.ListAPIView):
     queryset = User.objects.all()
@@ -17,19 +21,52 @@ class UserDetail(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-class BotList(generics.ListCreateAPIView):
+# class BotList(generics.ListCreateAPIView):
+#     queryset = Telegrambot.objects.all()
+#     serializer_class = TelegrambotSerializer
+#     # permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly)
+#     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+#     def perform_create(self, serializer):
+        
+#         if Telegrambot.test_token(serializer.validated_data.get('token')):
+#             serializer.save(user=self.request.user)
+#         else:
+#             print('OK')
+#             return HttpResponse('Mal', status=400)
+
+# @api_view(['GET', 'POST'])
+# def BotList(request):
+#     if request.method == 'GET':
+#         queryset = User.objects.all()
+#         bots = Telegrambot.objects.filter(request.user)
+#         serializer = TelegrambotSerializer(bots)
+
+#         return Response(serializer.data)
+
+class BotList(APIView):
+    """
+    List all bots, or create a new snippet.
+    """
     queryset = Telegrambot.objects.all()
-    serializer_class = TelegrambotSerializer
-    # permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def get(self, request, format=None):
 
-class BotDetails(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Telegrambot.objects.all()
-    serializer_class = TelegrambotSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+        serializer = TelegrambotSerializer(self.queryset.all(), many=True)
+        return Response(serializer.data)
+
+    def post(self, request, format=None):
+        serializer = TelegrambotSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=self.request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# class BotDetails(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Telegrambot.objects.all()
+#     serializer_class = TelegrambotSerializer
+#     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
 @csrf_exempt
 def trigger_list(request):

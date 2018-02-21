@@ -10,14 +10,16 @@ from telegrambot.models import *
 
 
 def main():
-    User.objects.all().delete()
+    for user in User.objects.all():
+        if not user.is_superuser:
+            user.delete()
+
     Telegrambot.objects.all().delete()
     Trigger.objects.all().delete()
     Reply.objects.all().delete()
     Behaviour.objects.all().delete()
 
     user = User.objects.create_user(username='Manolo', password='123456')
-    user.save()
 
     bot = Telegrambot(token='483224181:AAEa3MOFXyTKbUXnGhyAX_ihlSr0SbUVP6M', user=user)
     bot.save()
@@ -45,7 +47,7 @@ def main():
     reply4 = Reply(reply='124', behaviour=behaviour2)
     reply4.save()
     print(bot.is_connected())
-    bot.start()
+    # bot.start()
     print(bot.is_connected())
     
     # Telegrambot.objects.all().delete()

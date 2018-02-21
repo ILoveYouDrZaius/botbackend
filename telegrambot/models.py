@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from operator import and_
 from functools import reduce
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, BaseFilter
+from telegram.error import InvalidToken
 import telegram
 import random, threading, time
 
@@ -46,19 +47,22 @@ class Telegrambot(models.Model):
     
     updater = None
 
-    def __init__(self, *args, **kwargs):
+    @staticmethod
+    def test_token(token):
+        try:
+            Updater(token)
+            return True
+        except InvalidToken:
+            return False
 
-        # token = kwargs.pop('token', None)
-        # print('Token {t}'.format(t=token))
-        # if token is not None:
-        #     self.token = token
+    def __init__(self, *args, **kwargs):               
         super(Telegrambot, self).__init__(*args, **kwargs)
 
     def __str__(self):
         return self.token
 
     def start(self):
-
+        print(self.token)
         self.updater = Updater(self.token)
         behaviour_list = Behaviour.objects.filter(bot=self)
         

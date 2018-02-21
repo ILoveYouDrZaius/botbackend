@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers, permissions
 from telegrambot.models import Trigger, Telegrambot, TRIGGERS_CHOICES
 from django.contrib.auth.models import User
 
@@ -43,7 +43,7 @@ class TelegrambotSerializer(serializers.Serializer):
         Update and return an existing `Telegrambot` instance, given the validated data.
         """
         instance.name = validated_data.get('name', instance.name)
-        instance.token = validated_data.get('token', instance.token)
+        # instance.token = validated_data.get('token', instance.token)
         instance.active = validated_data.get('active', instance.active)
         instance.save()
         return instance
