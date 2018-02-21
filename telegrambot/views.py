@@ -10,7 +10,7 @@ from telegrambot.models import Trigger, Telegrambot
 from telegrambot.serializers import TriggerSerializer
 from django.contrib.auth.models import User
 from telegrambot.serializers import UserSerializer, TelegrambotSerializer
-from telegrambot.permissions import IsOwnerOrReadOnly
+from telegrambot.permissions import IsOwnerOrReadOnly, OnlyOwner
 from telegram.error import InvalidToken
 
 class UserList(generics.ListAPIView):
@@ -49,11 +49,11 @@ class BotList(APIView):
     List all bots, or create a new snippet.
     """
     queryset = Telegrambot.objects.all()
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, OnlyOwner)
 
     def get(self, request, format=None):
 
-        serializer = TelegrambotSerializer(self.queryset.all(), many=True)
+        serializer = TelegrambotSerializer(self.queryset.filter(user=self.request.user), many=True)
         return Response(serializer.data)
 
     def post(self, request, format=None):
