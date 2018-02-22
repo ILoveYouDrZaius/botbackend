@@ -1,4 +1,5 @@
 from rest_framework import serializers, permissions
+from rest_framework.exceptions import ValidationError
 from telegrambot.models import Trigger, Telegrambot, TRIGGERS_CHOICES
 from django.contrib.auth.models import User
 
@@ -29,14 +30,21 @@ class TelegrambotSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     user = serializers.ReadOnlyField(source='user.username')
     name = serializers.CharField(max_length=30, required=False)
-    token = serializers.CharField(max_length=50)
+    token = serializers.CharField(max_length=50, required=False)
     active = serializers.BooleanField(required=False)
     
     def create(self, validated_data):
         """
         Create and return a new `Telegrambot` instance, given the validated data.
         """
-        return Telegrambot.objects.create(**validated_data)
+        if validated_data.get('token'):
+            return Telegrambot.objects.create(**validated_data)
+        else:
+            error_dict = dict()
+            error_dict['token'] = list()
+            error_dict['token'].append('This field is required.')
+            raise ValidationError()
+        # return Telegrambot.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
         """
