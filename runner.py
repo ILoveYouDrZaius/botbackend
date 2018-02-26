@@ -5,9 +5,6 @@ django.setup()
 
 from telegrambot.models import *
 
-# def f(x):
-#     return(lambda x: x + 5)
-
 
 def main():
     for user in User.objects.all():
