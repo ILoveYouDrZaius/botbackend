@@ -3,8 +3,8 @@ from django.urls import path
 from telegrambot import views
 
 urlpatterns = [
-    url(r'^triggers/$', views.trigger_list),
-    url(r'^triggers/(?P<pk>[0-9]+)/$', views.trigger_detail),
+    url(r'^triggers/$', views.TriggerList.as_view()),
+    url(r'^triggers/(?P<pk>[0-9]+)/$', views.TriggerDetail.as_view()),
     url(r'^bots/$', views.BotList.as_view()),
     path('bots/<str:pk>/', views.BotDetails.as_view()),
     url(r'^users/$', views.UserList.as_view()),
