@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from django.http import HttpResponse, JsonResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, permissions, status
@@ -29,8 +30,11 @@ class UserList(APIView):
     # @authentication_classes((OAuth2Authentication, SocialAuthentication))
     def post(self, request, format=None):
         serializer = UserSerializer(data=request.data)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserDetail(generics.RetrieveAPIView):
@@ -47,17 +51,22 @@ class BotList(APIView):
     authentication_classes = (OAuth2Authentication, SocialAuthentication)
 
     def get(self, request, format=None):
+
         if self.request.user.username:
             serializer = TelegrambotSerializer(self.queryset.filter(user=self.request.user), many=True)
             return Response(serializer.data)
         else:
-            return Response('')
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
     def post(self, request, format=None):
 
         serializer = TelegrambotSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=self.request.user)
+            try:
+                serializer.save(user=self.request.user)
+            except IntegrityError:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+                
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

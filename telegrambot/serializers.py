@@ -38,6 +38,8 @@ class TelegrambotSerializer(serializers.Serializer):
         Create and return a new `Telegrambot` instance, given the validated data.
         """
         if validated_data.get('token'):
+            print('validated_data')
+            print(validated_data.get('user'))
             return Telegrambot.objects.create(**validated_data)
         else:
             error_dict = dict()
@@ -50,10 +52,11 @@ class TelegrambotSerializer(serializers.Serializer):
         """
         Update and return an existing `Telegrambot` instance, given the validated data.
         """
-        instance.name = validated_data.get('name', instance.name)
+        # instance.name = validated_data.get('name', instance.name)
         # instance.token = validated_data.get('token', instance.token)
-        instance.active = validated_data.get('active', instance.active)
-        instance.save()
+        if validated_data.get('active'):
+            instance.active = validated_data.get('active')
+            instance.save()
         return instance
 
 class UserSerializer(serializers.ModelSerializer):
