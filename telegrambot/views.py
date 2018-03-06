@@ -47,7 +47,7 @@ class BotList(APIView):
     List all bots, or create a new snippet.
     """
     queryset = Telegrambot.objects.all()
-    permission_classes = (Deny,)
+    permission_classes = (OnlyOwner,)
     authentication_classes = (OAuth2Authentication, SocialAuthentication)
 
     def get(self, request, format=None):
@@ -65,7 +65,7 @@ class BotList(APIView):
             try:
                 serializer.save(user=self.request.user)
             except IntegrityError:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+                return Response('Duplicated', status=status.HTTP_400_BAD_REQUEST)
                 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -75,14 +75,16 @@ class BotDetails(APIView):
     Retrieve, update or delete a bot instance.
     """
     queryset = Telegrambot.objects.all()
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, OnlyOwner)
-
+    permission_classes = (OnlyOwner,)
+    authentication_classes = (OAuth2Authentication, SocialAuthentication)
+    
     def get_object(self, pk):
         try:
-            return Telegrambot.objects.get(pk=pk)
+            obj = Telegrambot.objects.get(pk=pk)
+            self.check_object_permissions(self.request, obj)
+            return obj
         except Telegrambot.DoesNotExist:
             raise Http404
-
 
     def get(self, request, pk, format=None):
 
