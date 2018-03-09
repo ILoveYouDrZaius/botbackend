@@ -42,7 +42,7 @@ class Telegrambot(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bots')
     name = models.CharField(max_length=30)
-    token = models.CharField(max_length=50, primary_key=True)
+    token = models.CharField(max_length=50, unique=True)
     active = models.BooleanField(default=False)
     
     updater = None

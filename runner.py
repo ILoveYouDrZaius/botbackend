@@ -7,16 +7,19 @@ from telegrambot.models import *
 
 
 def main():
-    for user in User.objects.all():
-        if not user.is_superuser:
-            user.delete()
+    # for user in User.objects.all():
+    #     if not user.is_superuser:
+    #         user.delete()
 
     Telegrambot.objects.all().delete()
     Trigger.objects.all().delete()
     Reply.objects.all().delete()
     Behaviour.objects.all().delete()
-
-    user = User.objects.create_user(username='Manolo', password='123456')
+    
+    if User.objects.filter(username='Manolo').count() == 0:
+        user = User.objects.create_user(username='Manolo', password='123456')
+    else:
+        user = User.objects.get(username='Manolo')
 
     bot = Telegrambot(token='483224181:AAEa3MOFXyTKbUXnGhyAX_ihlSr0SbUVP6M', user=user)
     bot.save()

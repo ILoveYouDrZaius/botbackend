@@ -7,10 +7,10 @@ from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from telegrambot.models import Trigger, Telegrambot
+from telegrambot.models import *
 from telegrambot.serializers import TriggerSerializer
 from django.contrib.auth.models import User
-from telegrambot.serializers import UserSerializer, TelegrambotSerializer
+from telegrambot.serializers import *
 from telegrambot.permissions import *
 from telegram.error import InvalidToken
 
@@ -109,13 +109,67 @@ class BotDetails(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class TriggerList(generics.ListCreateAPIView):
+class TriggerList(APIView):
+    queryset = Trigger.objects.all()
+    permission_classes = (OnlyOwner,)
+    authentication_classes = (OAuth2Authentication, SocialAuthentication)
+
+    def get(self, request, pk, format=None):
+
+        if self.request.user.username:
+            serializer = TriggerSerializer()
+            return Response(serializer.data)
+        else:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+    def post(self, request, pk, format=None):
+
+        serializer = TriggerSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                serializer.save(user=self.request.user)
+            except IntegrityError:
+                return Response('Duplicated', status=status.HTTP_400_BAD_REQUEST)
+                
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TriggerDetail(APIView):
     permission_classes = (permissions.IsAuthenticated, OnlyOwner)
     queryset = Trigger.objects.all()
     serializer_class = TriggerSerializer
 
+class BehaviourList(APIView):
+    queryset = Behaviour.objects.all()
+    permission_classes = (OnlyOwner,)
+    authentication_classes = (OAuth2Authentication, SocialAuthentication)
 
-class TriggerDetail(generics.RetrieveUpdateDestroyAPIView):
+    def get(self, request, pk, format=None):
+
+        if self.request.user.username:
+
+            bot = Telegrambot.objects.get(id=pk)
+            serializer = BehaviourSerializer(self.queryset.filter(bot=bot), many=True)
+            return Response(serializer.data)
+        else:
+            
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+    def post(self, request, pk, format=None):
+
+        serializer = BehaviourSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                serializer.save(user=self.request.user)
+            except IntegrityError:
+                return Response('Duplicated', status=status.HTTP_400_BAD_REQUEST)
+                
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BehaviourDetail(APIView):
     permission_classes = (permissions.IsAuthenticated, OnlyOwner)
     queryset = Trigger.objects.all()
     serializer_class = TriggerSerializer
