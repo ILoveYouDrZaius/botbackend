@@ -109,60 +109,38 @@ class BotDetails(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class TriggerList(APIView):
-    queryset = Trigger.objects.all()
-    permission_classes = (OnlyOwner,)
-    authentication_classes = (OAuth2Authentication, SocialAuthentication)
-
-    def get(self, request, pk, format=None):
-
-        if self.request.user.username:
-            serializer = TriggerSerializer()
-            return Response(serializer.data)
-        else:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-    def post(self, request, pk, format=None):
-
-        serializer = TriggerSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                serializer.save(user=self.request.user)
-            except IntegrityError:
-                return Response('Duplicated', status=status.HTTP_400_BAD_REQUEST)
-                
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class TriggerDetail(APIView):
-    permission_classes = (permissions.IsAuthenticated, OnlyOwner)
-    queryset = Trigger.objects.all()
-    serializer_class = TriggerSerializer
-
 class BehaviourList(APIView):
     queryset = Behaviour.objects.all()
     permission_classes = (OnlyOwner,)
     authentication_classes = (OAuth2Authentication, SocialAuthentication)
 
-    def get(self, request, pk, format=None):
+    def get(self, request, pk_bot, format=None):
 
         if self.request.user.username:
+            try:
+                bot = Telegrambot.objects.get(id=pk_bot, user=self.request.user)
+            except Telegrambot.DoesNotExist:
+                return Response('Bot does not exists', 404)
 
-            bot = Telegrambot.objects.get(id=pk)
             serializer = BehaviourSerializer(self.queryset.filter(bot=bot), many=True)
             return Response(serializer.data)
         else:
             
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-    def post(self, request, pk, format=None):
-
+    def post(self, request, pk_bot, format=None):
+        
         serializer = BehaviourSerializer(data=request.data)
+        try:
+            bot = Telegrambot.objects.get(id=pk_bot, user=self.request.user)
+        except Telegrambot.DoesNotExist:
+            raise Http404
+
         if serializer.is_valid():
             try:
-                serializer.save(user=self.request.user)
-            except IntegrityError:
+                serializer.save(bot=bot)
+            except IntegrityError as e:
+                print(e)
                 return Response('Duplicated', status=status.HTTP_400_BAD_REQUEST)
                 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -170,6 +148,42 @@ class BehaviourList(APIView):
 
 
 class BehaviourDetail(APIView):
-    permission_classes = (permissions.IsAuthenticated, OnlyOwner)
-    queryset = Trigger.objects.all()
-    serializer_class = TriggerSerializer
+    queryset = Behaviour.objects.all()
+    permission_classes = (OnlyOwner,)
+    authentication_classes = (OAuth2Authentication, SocialAuthentication)
+    
+    def get_object(self, pk_bot, pk):
+        try:
+            try:
+                bot = Telegrambot.objects.get(id=pk_bot)
+            except Telegrambot.DoesNotExist:
+                raise Http404
+            self.check_object_permissions(self.request, bot)
+            obj = Behaviour.objects.get(id=pk, bot=bot)
+
+            return obj
+
+        except Behaviour.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk_bot, pk, format=None):
+
+        bot = self.get_object(pk_bot, pk)
+        serializer = BehaviourSerializer(bot)
+        return Response(serializer.data)
+
+
+    def put(self, request, pk_bot, pk, format=None):
+
+        bot = self.get_object(pk)
+        serializer = TelegrambotSerializer(bot, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk_bot, pk, format=None):
+
+        bot = self.get_object(pk)
+        bot.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

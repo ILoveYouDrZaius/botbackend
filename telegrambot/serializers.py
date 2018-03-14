@@ -37,14 +37,13 @@ class TelegrambotSerializer(serializers.Serializer):
         Create and return a new `Telegrambot` instance, given the validated data.
         """
         if validated_data.get('token'):
-            print('validated_data')
-            print(validated_data.get('user'))
+
             return Telegrambot.objects.create(**validated_data)
         else:
             error_dict = dict()
             error_dict['token'] = list()
             error_dict['token'].append('This field is required.')
-            raise ValidationError()
+            raise ValidationError(error_dict)
         # return Telegrambot.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
@@ -76,7 +75,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class BehaviourSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
+    id = serializers.IntegerField(read_only=True)
+    bot = serializers.ReadOnlyField(source='bot.id')
     active = serializers.BooleanField()
     type_behaviour = serializers.ChoiceField(choices=TRIGGERS_CHOICES, required=False)
     
@@ -88,6 +88,12 @@ class BehaviourSerializer(serializers.Serializer):
         """
         Create and return a new `Behaviour` instance, given the validated data.
         """
+        if not 'type_behaviour' in validated_data:
+            error_dict = dict()
+            error_dict['type_behaviour'] = list()
+            error_dict['type_behaviour'].append('This field is required.')
+            raise ValidationError(error_dict)
+
         return Behaviour.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
