@@ -168,15 +168,15 @@ class BehaviourDetail(APIView):
 
     def get(self, request, pk_bot, pk, format=None):
 
-        bot = self.get_object(pk_bot, pk)
-        serializer = BehaviourSerializer(bot)
+        behaviour = self.get_object(pk_bot, pk)
+        serializer = BehaviourSerializer(behaviour)
         return Response(serializer.data)
 
 
     def put(self, request, pk_bot, pk, format=None):
 
-        bot = self.get_object(pk)
-        serializer = TelegrambotSerializer(bot, data=request.data)
+        behaviour = self.get_object(pk_bot, pk)
+        serializer = BehaviourSerializer(behaviour, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -184,6 +184,6 @@ class BehaviourDetail(APIView):
 
     def delete(self, request, pk_bot, pk, format=None):
 
-        bot = self.get_object(pk)
-        bot.delete()
+        behaviour = self.get_object(pk_bot, pk)
+        behaviour.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

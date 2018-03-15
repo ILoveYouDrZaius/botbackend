@@ -100,8 +100,7 @@ class BehaviourSerializer(serializers.Serializer):
         """
         Update and return an existing `Behaviour` instance, given the validated data.
         """
-        # instance.behaviour = validated_data.get('behaviour', instance.behaviour)
-        # instance.word_trigger = validated_data.get('word_trigger', instance.word_trigger)
-        # instance.type_behaviour = validated_data.get('type_behaviour', instance.type_behaviour)
-        # instance.save()
+        instance.active = validated_data.get('active', instance.active)
+        instance.type_behaviour = validated_data.get('type_behaviour', instance.type_behaviour)
+        instance.save()
         return instance
