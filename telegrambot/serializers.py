@@ -5,7 +5,9 @@ from django.contrib.auth.models import User
 
 
 class TriggerSerializer(serializers.Serializer):
-    behaviour = serializers.StringRelatedField(read_only=True)
+    id = serializers.IntegerField(read_only=True)
+
+    behaviour = serializers.StringRelatedField(read_only=True, source='behaviour.id')
     word_trigger = serializers.CharField(required=True, max_length=100)
     type_behaviour = serializers.ChoiceField(choices=TRIGGERS_CHOICES, required=False)
 
@@ -19,7 +21,6 @@ class TriggerSerializer(serializers.Serializer):
         """
         Update and return an existing `Trigger` instance, given the validated data.
         """
-        instance.behaviour = validated_data.get('behaviour', instance.behaviour)
         instance.word_trigger = validated_data.get('word_trigger', instance.word_trigger)
         instance.type_behaviour = validated_data.get('type_behaviour', instance.type_behaviour)
         instance.save()
