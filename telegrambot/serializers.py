@@ -111,3 +111,23 @@ class TriggerSerializer(serializers.Serializer):
         instance.type_trigger = validated_data.get('type_trigger', instance.type_trigger)
         instance.save()
         return instance
+
+
+class ReplySerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+
+    reply = serializers.CharField(required=True, max_length=200)
+
+    def create(self, validated_data):
+        """
+        Create and return a new `Reply` instance, given the validated data.
+        """
+        return Reply.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        """
+        Update and return an existing `Reply` instance, given the validated data.
+        """
+        instance.reply = validated_data.get('reply', instance.reply)
+        instance.save()
+        return instance

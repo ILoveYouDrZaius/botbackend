@@ -62,16 +62,15 @@ class Telegrambot(models.Model):
         return self.token
 
     def start(self):
-        print(self.token)
         self.updater = Updater(self.token)
-        behaviour_list = Behaviour.objects.filter(bot=self)
+        behaviour_list = Behaviour.objects.filter(bot=self, active=True)
         
         for behaviour in behaviour_list:
             triggers = Trigger.objects.filter(behaviour=behaviour)
             replies = Reply.objects.filter(behaviour=behaviour)
+            print(replies)
             all_filters = None
             for trigger in triggers:
-                print(trigger.word_trigger)
                 if behaviour.type_behaviour == AND:
                     if not all_filters:
                         all_filters = CustomFilter(trigger.word_trigger, trigger.type_trigger)
@@ -90,9 +89,9 @@ class Telegrambot(models.Model):
         self.updater.start_polling(clean=True)
 
     def stop(self):
-
-        self.updater.stop()
-        self.updater = None
+        if self.updater:
+            self.updater.stop()
+            self.updater = None
 
     def is_connected(self):
 
@@ -108,6 +107,25 @@ class Behaviour(models.Model):
 
     def __str__(self):
         return 'behaviour {id}'.format(id=self.id)
+    
+    def save(self, *args, **kwargs):
+        
+        bot = self.bot
+
+        super(Behaviour, self).save(*args, **kwargs)
+
+        bot.stop()
+        bot.start()
+
+    def delete(self, *args, **kwargs):
+        
+        bot = self.bot
+
+        super(Behaviour, self).delete()
+
+        bot.stop()
+        bot.start()
+
 
 class Trigger(models.Model):
 
@@ -115,9 +133,43 @@ class Trigger(models.Model):
     word_trigger = models.CharField(max_length=100)
     type_trigger = models.IntegerField(choices=TRIGGERS_CHOICES)
 
+    def save(self, *args, **kwargs):
+        
+        bot = self.behaviour.bot
+
+        super(Trigger, self).save(*args, **kwargs)
+
+        bot.stop()
+        bot.start()
+    
+    def delete(self, *args, **kwargs):
+        
+        bot = self.behaviour.bot
+
+        super(Trigger, self).delete()
+
+        bot.stop()
+        bot.start()
+
 class Reply(models.Model):
 
     behaviour = models.ForeignKey(Behaviour, on_delete=models.CASCADE, related_name='reply_behaviour')
     reply = models.CharField(max_length=200)
 
+    def save(self, *args, **kwargs):
+        
+        bot = self.behaviour.bot
+
+        super(Reply, self).save(*args, **kwargs)
+
+        bot.stop()
+        bot.start()
     
+    def delete(self, *args, **kwargs):
+        
+        bot = self.behaviour.bot
+
+        super(Reply, self).delete()
+
+        bot.stop()
+        bot.start()
