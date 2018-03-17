@@ -4,28 +4,6 @@ from telegrambot.models import *
 from django.contrib.auth.models import User
 
 
-class TriggerSerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True)
-
-    behaviour = serializers.StringRelatedField(read_only=True, source='behaviour.id')
-    word_trigger = serializers.CharField(required=True, max_length=100)
-    type_behaviour = serializers.ChoiceField(choices=TRIGGERS_CHOICES, required=False)
-
-    def create(self, validated_data):
-        """
-        Create and return a new `Trigger` instance, given the validated data.
-        """
-        return Trigger.objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-        """
-        Update and return an existing `Trigger` instance, given the validated data.
-        """
-        instance.word_trigger = validated_data.get('word_trigger', instance.word_trigger)
-        instance.type_behaviour = validated_data.get('type_behaviour', instance.type_behaviour)
-        instance.save()
-        return instance
-
 class TelegrambotSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     user = serializers.ReadOnlyField(source='user.username')
@@ -79,7 +57,7 @@ class BehaviourSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     bot = serializers.ReadOnlyField(source='bot.id')
     active = serializers.BooleanField()
-    type_behaviour = serializers.ChoiceField(choices=TRIGGERS_CHOICES, required=False)
+    type_behaviour = serializers.ChoiceField(choices=BEHAVIOUR_TYPES_CHOICES, required=False)
     
     class Meta:
         model = Behaviour
@@ -103,5 +81,33 @@ class BehaviourSerializer(serializers.Serializer):
         """
         instance.active = validated_data.get('active', instance.active)
         instance.type_behaviour = validated_data.get('type_behaviour', instance.type_behaviour)
+        instance.save()
+        return instance
+
+
+class TriggerSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+
+    behaviour = serializers.StringRelatedField(read_only=True, source='behaviour.id')
+    word_trigger = serializers.CharField(required=True, max_length=100)
+    type_trigger = serializers.ChoiceField(choices=TRIGGERS_CHOICES, required=False)
+
+    def create(self, validated_data):
+        """
+        Create and return a new `Trigger` instance, given the validated data.
+        """
+        if not 'type_trigger' in validated_data:
+            error_dict = dict()
+            error_dict['type_trigger'] = list()
+            error_dict['type_trigger'].append('This field is required.')
+            raise ValidationError(error_dict)
+        return Trigger.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        """
+        Update and return an existing `Trigger` instance, given the validated data.
+        """
+        instance.word_trigger = validated_data.get('word_trigger', instance.word_trigger)
+        instance.type_trigger = validated_data.get('type_trigger', instance.type_trigger)
         instance.save()
         return instance
